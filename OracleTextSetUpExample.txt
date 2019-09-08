@@ -1,0 +1,18 @@
+下記のように整形します。
+・文字：col <カラム名> format an　※nはバイト数
+・数値：col <カラム名> format 数値書式
+・日付：col <カラム名> format an　※nはバイト数　およびNLS_DATE_FORMATの指定
+
+col bldgid format 999,999,999
+col claimid format 999,999,999
+col claimsubid format 999,999,999
+col claimidold format a15
+col bldgnm format a30
+col bldgnmsub format a24
+col constructnm format a30
+col address format a40
+col uusernm format a30
+col custnm format a10
+col custnmkana format a10
+col cdate format a35
+col udate format a35
