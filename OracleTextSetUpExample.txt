@@ -1,18 +1,41 @@
-下記のように整形します。
-・文字：col <カラム名> format an　※nはバイト数
-・数値：col <カラム名> format 数値書式
-・日付：col <カラム名> format an　※nはバイト数　およびNLS_DATE_FORMATの指定
+①Oracle Text が使用可能かどうかの確認
+  SYS ユーザでデータベースにログインし、
+ 「CTXSYS」というユーザが存在するかどうか確認してください。
 
-col bldgid format 999,999,999
-col claimid format 999,999,999
-col claimsubid format 999,999,999
-col claimidold format a15
-col bldgnm format a30
-col bldgnmsub format a24
-col constructnm format a30
-col address format a40
-col uusernm format a30
-col custnm format a10
-col custnmkana format a10
-col cdate format a35
-col udate format a35
+$ sqlplus / as sysdba
+SQL> select username from dba_users
+     where username='CTXSYS';
+
+
+②CTXSYS ユーザがロックされていることがありますので、
+  まず以下の SQL 文で CTXSYSがロックしているかどうかを確認してください。
+
+$ sqlplus / as sysdba
+SQL> select username,account_status from dba_users where username='CTXSYS';
+実行結果例）
+ USERNAME   ACCOUNT_STATUS
+ ---------- ---------------
+ CTXSYS     EXPIRED & LOCKED
+
+③上記の例のように CTXSYS がロックしている場合、
+  以下の手順で CTXSYS をアンロックしてください。
+
+SQL> alter user ctxsys identified by <パスワード> account unlock;
+
+④ctxsysにユーザを切り替え、インデックスを作成を行うユーザに権限を付与する
+SQL> connect ctxsys/<パスワード>
+SQL> grant ctxapp to hr;
+
+④権限を付与したユーザに切り替える
+SQL> connect hr/hr
+
+⑥プリファレンス※の作成
+  ※ Text 索引の属性(例えば、どのレクサー使用か)の設定をするのがプリファレンスです。
+     JAPANESE_LEXER は日本語を扱うレクサーになります。
+SQL> exec ctx_ddl.create_preference('t_lexer_pref','JAPANESE_LEXER');
+
+⑤Text 索引の作成
+SQL> create index BLDG_M_IDX on BLDG_M(BLDGNM)
+     indextype is ctxsys.context
+     parameters('LEXER t_lexer_pref SYNC(MANUAL)');
+
